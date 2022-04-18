@@ -1,2 +1,3 @@
 # miniprojectfinal
-Final Mini Project Repo for the class
+
+Understanding Complaints Sent To JP Morgan
