@@ -1,0 +1,70 @@
+---
+title: "MiniProject_RMarkdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(flexdashboard)
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(readxl)
+library(writexl)
+
+complaints_raw <- readRDS("~/Desktop/R_MiniProject_Ashwath/miniproject/complaints.rds")
+
+allcomplaints <- complaints_raw %>%
+  clean_names()
+
+```
+
+
+```{r allcomplaints}
+summary(allcomplaints)
+```
+
+#Separating JP Morgan from the data an studying the number of complaints they received.
+
+```{r allcomplaints}
+
+jpmorgan <- allcomplaints%>%
+  filter(company == "JPMORGAN CHASE & CO.")
+
+jpmorgan %>%
+  count(product, sort = TRUE)
+
+```
+
+Grouping the complaints by the month received through 2020
+
+```{r allcomplaints}
+
+complaintsbymonth <- jpmorgan %>%
+  group_by(month = month(date_received)) %>%
+  summarise(nummonths = n())
+
+complaintsbymonth
+
+ggplot(complaintsbymonth, aes(x = month, y = nummonths)) + 
+  geom_line()
+
+```
+
+Grouping by the way the company received to the complaints
+
+```{r allcomplaints}
+
+month_submissiontype <-  jpmorgan %>% 
+  group_by(month = month(date_received), submitted_via) %>% 
+  summarise(nummonths = n())
+
+
+ggplot(month_submissiontype) +
+  # add bar for each month colored by submission type
+  geom_bar(aes(x = month, y = nummonths, fill = submitted_via),
+           stat = "identity", position = "dodge") 
+
+```
+
