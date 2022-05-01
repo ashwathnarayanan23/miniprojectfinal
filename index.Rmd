@@ -2,8 +2,7 @@
 title: "JP Morgan's Complaints Received"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: columns
-    vertical_layout: fill
+    orientation: rows
 ---
 
 ```{r setup, include=FALSE}
@@ -13,6 +12,13 @@ library(lubridate)
 library(janitor)
 library(readxl)
 library(writexl)
+library(kableExtra)
+library(scales)
+library(ggthemes)
+library(esquisse)
+library(DT)
+
+
 
 complaints_raw <- readRDS("~/Desktop/R_MiniProject_Ashwath/miniproject/complaints.rds")
 
@@ -21,23 +27,49 @@ allcomplaints <- complaints_raw %>%
 
 ```
 
-Column {data-width=650}
+Page 1
+===================================== 
+
+Every year, The Consumer Financial Protection Bureau publishes complaints received by the top financial service providers in the country. They only publish complaints sent to the company expecting response, and the complaints are only published after the company responds.
+
+Complaints are an important way to give consumers and industry folks a better understanding of how consumers are interacting with the market. 
+
+This particular data set explores the complaints received by JP Morgan and how they are responding to it. Further, it provides insights around the trends of how JP Morgan is receiving it's complaints. This allows them to strengthen a specific medium of response and strategize their services.
+
+Row
 -----------------------------------------------------------------------
 
-Analyzing JP Morgan's Complaints Received
+Showcasing all the complaints receieved by JP Morgan
 
 ```{r}
 
 jpmorgan <- allcomplaints%>%
   filter(company == "JPMORGAN CHASE & CO.")
 
-jpmorgan %>%
-  count(product, sort = TRUE)
+DT::datatable(jpmorgan[, c("company", "state", "product" )],
+  rownames = FALSE, options = list(pageLength = 10)
+)
 
 
 ```
 
-Column {data-width=350}
+Page 2 {data-orientation=rows}
+=====================================
+
+Row
+-----------------------------------------------------------------------
+
+Analyzing JP Morgan's Complaints Received
+
+```{r}
+
+jpmorgan %>%
+  count(submitted_via, sort = TRUE)
+
+
+```
+
+Row
 -----------------------------------------------------------------------
 
 Understanding when in the year JP Morgan receives the most complaints.
@@ -48,12 +80,15 @@ complaintsbymonth <- jpmorgan %>%
   group_by(month = month(date_received)) %>%
   summarise(nummonths = n())
 
-complaintsbymonth
-
 ggplot(complaintsbymonth, aes(x = month, y = nummonths)) + 
-  geom_line()
+  geom_line(color = "red", size=2)+
+  scale_y_continuous(name = "Number of Complaints", labels = scales::comma)+
+  scale_x_discrete(name = "Months in the Year", breaks = seq(1)) +
+  labs(title = "Complaints Received By JP Morgan",  subtitle = "in 2020")
+  
 
 ```
+
 
 Grouping complaints by month and the way they were submitted.
 
@@ -67,7 +102,12 @@ month_submissiontype <-  jpmorgan %>%
 ggplot(month_submissiontype) +
   # add bar for each month colored by submission type
   geom_bar(aes(x = month, y = nummonths, fill = submitted_via),
-           stat = "identity", position = "dodge") 
+           stat = "identity", position = "dodge") +
+  scale_y_continuous(name = "Number of Complaints", labels = scales::comma)+
+  scale_x_discrete(name = "Months in the Year", breaks = seq(1)) +
+  labs(title = "How The Complaint Was Received",  subtitle = "in 2020")+
+  theme_fivethirtyeight()
+
 
 ```
 
